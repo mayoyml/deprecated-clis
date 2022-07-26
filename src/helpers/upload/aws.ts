@@ -6,6 +6,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import path from 'path';
 import { getType } from 'mime';
 import { setImageUrlManifest } from './file-uri';
+import { v4 as uuidv4 } from 'uuid';
 
 async function uploadFile(
   s3Client: S3Client,
@@ -44,7 +45,8 @@ export async function awsUpload(
   const s3Client = new S3Client({ region: REGION });
 
   async function uploadMedia(media) {
-    const mediaPath = `assets/${basename(media)}`;
+    // const mediaPath = `assets/${basename(media)}`;
+    const mediaPath = uuidv4();
     log.debug('media:', media);
     log.debug('mediaPath:', mediaPath);
     const mediaFileStream = createReadStream(media);
@@ -64,8 +66,8 @@ export async function awsUpload(
     .replace('.', '')}`;
   const animationUrl = animation
     ? `${await uploadMedia(animation)}?ext=${path
-        .extname(animation)
-        .replace('.', '')}`
+      .extname(animation)
+      .replace('.', '')}`
     : undefined;
 
   const manifestJson = await setImageUrlManifest(
@@ -76,8 +78,9 @@ export async function awsUpload(
 
   const updatedManifestBuffer = Buffer.from(JSON.stringify(manifestJson));
 
-  const extensionRegex = new RegExp(`${path.extname(image)}$`);
-  const metadataFilename = image.replace(extensionRegex, '.json');
+  // const extensionRegex = new RegExp(`${path.extname(image)}$`);
+  // const metadataFilename = image.replace(extensionRegex, '.json');
+  const metadataFilename = uuidv4();
   const metadataUrl = await uploadFile(
     s3Client,
     awsS3Bucket,
